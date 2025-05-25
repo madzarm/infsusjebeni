@@ -1,14 +1,11 @@
-<!-- product-form.html -->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(${product.productId} != null ? 'Edit Product' : 'New Product', ~{::pageBody})}">
 
 <div th:fragment="pageBody">
 
-    <!-- Product Form Card -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <!-- General Error Message (e.g. thrown from service) -->
             <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <span th:text="${error}">Error message</span>
@@ -21,12 +18,10 @@
                   class="row g-3 needs-validation"
                   novalidate>
 
-                <!-- keep the hidden id so your save() can detect update vs create -->
                 <input type="hidden"
                        th:if="*{productId}"
                        th:field="*{productId}" />
 
-                <!-- Name -->
                 <div class="col-md-6">
                     <label for="pname" class="form-label">Name</label>
                     <div class="input-group">
@@ -64,7 +59,6 @@
                     </div>
                 </div>
 
-                <!-- Description (optional, but will show any server‐side errors) -->
                 <div class="col-12">
                     <label for="pdesc" class="form-label">Description</label>
                     <textarea id="pdesc"
@@ -78,7 +72,6 @@
                          th:errors="*{description}">Description error</div>
                 </div>
 
-                <!-- Project dropdown -->
                 <div class="col-md-6">
                     <label for="project" class="form-label">Project</label>
                     <select id="project"
@@ -97,7 +90,6 @@
                          th:errors="*{project}">Project error</div>
                 </div>
 
-                <!-- Submit / Cancel -->
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-save2 me-1"></i>

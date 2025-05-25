@@ -113,7 +113,6 @@ public class ProjectController {
         try {
             System.out.println("Updating project with ID: " + id);
             Project existing = projectService.findById(id);
-            // update only allowed fields
             existing.setName(projectForm.getName());
             existing.setStatus(projectForm.getStatus());
             existing.setAverageTotalAssets(projectForm.getAverageTotalAssets());
