@@ -3,6 +3,7 @@ package com.infsus.dz3_md.service;
 import com.infsus.dz3_md.domain.Product;
 import com.infsus.dz3_md.domain.Project;
 import com.infsus.dz3_md.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,65 +14,78 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ProductService {
 
-    private final ProductRepository repo;
-    private final ProjectService projectService;  // to resolve the FK
+    private final ProductRepository productRepository;
+    private final ProjectService projectService;
 
     /**
-     * Search all products, or by project, and/or by name q.
+     * Search products globally or within a project and/or by name
      */
     @Transactional(readOnly = true)
-    public Page<Product> search(UUID projectId, String q, Pageable pg) {
+    public Page<Product> search(UUID projectId, String q, Pageable pageable) {
         boolean hasQ = q != null && !q.isBlank();
         if (projectId != null) {
             if (hasQ) {
-                return repo.findByProject_ProjectIdAndNameContainingIgnoreCase(projectId, q, pg);
+                return productRepository
+                        .findByProject_ProjectIdAndNameContainingIgnoreCase(projectId, q, pageable);
             }
-            return repo.findByProject_ProjectId(projectId, pg);
+            return productRepository.findByProject_ProjectId(projectId, pageable);
         }
         if (hasQ) {
-            return repo.findByNameContainingIgnoreCase(q, pg);
+            return productRepository.findByNameContainingIgnoreCase(q, pageable);
         }
-        return repo.findAll(pg);
+        return productRepository.findAll(pageable);
     }
 
+    /**
+     * Retrieve a single product by ID
+     */
     @Transactional(readOnly = true)
-    public Product findOne(UUID id) {
-        return repo.findById(id)
-                   .orElseThrow(() -> new IllegalArgumentException("Product not found: " + id));
+    public Product findById(UUID id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
     }
 
-    public Product save(Product p) {
-        UUID pid = p.getProject() != null ? p.getProject().getProjectId() : null;
-        if (pid == null) {
+    /**
+     * Save or update a product, enforcing project and name-uniqueness
+     */
+    @Transactional
+    public Product save(Product product) {
+        UUID projectId = product.getProject() != null
+                ? product.getProject().getProjectId() : null;
+        if (projectId == null) {
             throw new IllegalArgumentException("Every product must belong to a project.");
         }
-        // re-attach managed project
-        Project pr = projectService.findOne(pid);
-        p.setProject(pr);
+        Project project = projectService.findById(projectId);
+        product.setProject(project);
 
-        // unique-name check
-        if (p.getProductId() == null) {
-            // creating
-            if (repo.existsByNameAndProject_ProjectId(p.getName(), pid)) {
-                throw new IllegalStateException("A product with this name already exists in the project.");
-            }
+        boolean exists;
+        if (product.getProductId() == null) {
+            exists = productRepository.existsByNameAndProject_ProjectId(
+                    product.getName(), projectId);
         } else {
-            // updating
-            if (repo.existsByNameAndProject_ProjectIdAndProductIdNot(
-                    p.getName(), pid, p.getProductId())) {
-                throw new IllegalStateException("A product with this name already exists in the project.");
-            }
+            exists = productRepository.existsByNameAndProject_ProjectIdAndProductIdNot(
+                    product.getName(), projectId, product.getProductId());
+        }
+        if (exists) {
+            throw new IllegalStateException(
+                    "A product with this name already exists in the project.");
         }
 
-        p = repo.save(p);
-        projectService.save(pr);  // update the project
-        return p;
+        Product saved = productRepository.save(product);
+        projectService.save(project); // cascade update
+        return saved;
     }
 
+    /**
+     * Delete a product by ID
+     */
+    @Transactional
     public void delete(UUID id) {
-        repo.deleteById(id);
+        if (!productRepository.existsById(id)) {
+            throw new EntityNotFoundException("Product not found: " + id);
+        }
+        productRepository.deleteById(id);
     }
 }

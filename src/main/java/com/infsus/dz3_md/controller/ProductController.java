@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -22,82 +23,111 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductService service;
+    private final ProductService productService;
     private final ProjectService projectService;
 
-    /** make all projects available for the FK‐dropdown */
+    /**
+     * Populate all projects for dropdowns
+     */
     @ModelAttribute("allProjects")
-    public List<Project> allProjects() {
-        return projectService.search(null, Pageable.unpaged())
-                .getContent();
+    public List<Project> populateProjects() {
+        return projectService.search(null, Pageable.unpaged()).getContent();
     }
 
-
-    /** list or filter by projectId/q */
+    /**
+     * List or filter products by project or name
+     */
     @GetMapping
-    public String list(@RequestParam(required = false) UUID projectId,
-                       @RequestParam(required = false) String q,
-                       @PageableDefault(size = 10) Pageable pg,
-                       Model m) {
-        m.addAttribute("page", service.search(projectId, q, pg));
-        m.addAttribute("projectId", projectId);
-        m.addAttribute("q", q);
+    public String listProducts(
+            @RequestParam Optional<UUID> projectId,
+            @RequestParam Optional<String> q,
+            @PageableDefault(size = 10) Pageable pageable,
+            Model model
+    ) {
+        UUID pid = projectId.orElse(null);
+        String query = q.filter(s -> !s.isBlank()).orElse(null);
+        model.addAttribute("page", productService.search(pid, query, pageable));
+        model.addAttribute("projectId", pid);
+        model.addAttribute("q", query);
         return "product-list";
     }
 
-    /** new product (optional projectId pre‐selected) */
+    /**
+     * Show form to create a new product, optionally pre-selecting project
+     */
     @GetMapping("/new")
-    public String create(@RequestParam(required = false) UUID projectId, Model m) {
-        Product p = new Product();
-        if (projectId != null) {
-            // pre‐set the FK so the dropdown will default
-            p.setProject(projectService.findOne(projectId));
-        }
-        m.addAttribute("product", p);
+    public String showCreateForm(
+            @RequestParam Optional<UUID> projectId,
+            Model model
+    ) {
+        Product product = new Product();
+        projectId.ifPresent(id -> product.setProject(projectService.findById(id)));
+        model.addAttribute("product", product);
         return "product-form";
     }
 
-    /** edit existing */
+    /**
+     * Show form to edit an existing product
+     */
     @GetMapping("/{id}")
-    public String edit(@PathVariable UUID id, Model m) {
-        m.addAttribute("product", service.findOne(id));
-        return "product-form";
-    }
-
-    /** save (create or update) */
-    @PostMapping
-    public String save(@Valid @ModelAttribute Product product,
-                       BindingResult br,
-                       Model m,
-                       RedirectAttributes ra) {
-
-        // re-populate the dropdown if we need to re-render
-        m.addAttribute("allProjects",
-                projectService.search(null, Pageable.unpaged()).getContent());
-
-        if (br.hasErrors()) {
-            return "product-form";
-        }
-
+    public String showEditForm(
+            @PathVariable UUID id,
+            Model model,
+            RedirectAttributes redirectAttrs
+    ) {
         try {
-            service.save(product);
-        } catch (IllegalStateException ex) {
-            // uniqueness or missing-project error → bind to the 'name' field
-            br.rejectValue("name", "duplicate", ex.getMessage());
+            Product product = productService.findById(id);
+            model.addAttribute("product", product);
             return "product-form";
+        } catch (Exception ex) {
+            redirectAttrs.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/products";
         }
-
-        ra.addFlashAttribute("msg", "Saved!");
-        return "redirect:/projects/" + product.getProject().getProjectId();
     }
 
-    /** delete and return to the project view */
+    /**
+     * Handle create or update of a product
+     */
+    @PostMapping
+    public String saveProduct(
+            @Valid @ModelAttribute Product product,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttrs
+    ) {
+        if (bindingResult.hasErrors()) {
+            return "product-form";
+        }
+        try {
+            Product saved = productService.save(product);
+            redirectAttrs.addFlashAttribute("msg", "Product saved successfully!");
+            return "redirect:/projects/" + saved.getProject().getProjectId();
+        } catch (Exception ex) {
+            bindingResult.rejectValue(
+                    ex instanceof IllegalStateException ? "name" : "project",
+                    "error",
+                    ex.getMessage()
+            );
+            return "product-form";
+        }
+    }
+
+    /**
+     * Delete a product and return to its project view
+     */
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable UUID id,
-                         RedirectAttributes ra) {
-        Product p = service.findOne(id);
-        service.delete(id);
-        ra.addFlashAttribute("msg", "Deleted!");
-        return "redirect:/projects/" + p.getProject().getProjectId();
+    public String deleteProduct(
+            @PathVariable UUID id,
+            RedirectAttributes redirectAttrs
+    ) {
+        try {
+            Product product = productService.findById(id);
+            productService.delete(id);
+            redirectAttrs.addFlashAttribute("msg", "Product deleted successfully!");
+            return "redirect:/projects/" + product.getProject().getProjectId();
+        } catch (Exception ex) {
+            redirectAttrs.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/products";
+        }
     }
 }

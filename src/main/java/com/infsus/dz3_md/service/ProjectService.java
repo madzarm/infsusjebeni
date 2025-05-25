@@ -4,7 +4,6 @@ import com.infsus.dz3_md.domain.Project;
 import com.infsus.dz3_md.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,36 +12,37 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class ProjectService {
 
-    private final ProjectRepository repo;
-
-    @Autowired        // constructor injection
-    public ProjectService(ProjectRepository repo) {
-        this.repo = repo;
-    }
-
-    public Page<Project> search(String q, Pageable pageable) {
-        if (q == null || q.isBlank()) return repo.findAll(pageable);
-        return repo.findAll(ProjectSpecs.nameMissionVisionLike(q), pageable);
-    }
-
+    private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
-    public Project findOne(UUID id) {
-        return repo.findById(id)
+    public Page<Project> search(String q, Pageable pageable) {
+        if (q == null || q.isBlank()) {
+            return projectRepository.findAll(pageable);
+        }
+        return projectRepository.findAll(ProjectSpecs.nameMissionVisionLike(q), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Project findById(UUID id) {
+        return projectRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + id));
     }
 
+    @Transactional
+    public Project save(Project project) {
+        return projectRepository.save(project);
+    }
 
-    public Project save(Project p) { return repo.save(p); }
-
+    @Transactional
     public void delete(UUID id) {
-        Project p = repo.findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Project"));
-        if (!p.getProducts().isEmpty())      // VALIDATION 3 – custom rule
-            throw new IllegalStateException("Cannot delete project with products.");
-        repo.delete(p);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found: " + id));
+        if (project.getProducts() != null && !project.getProducts().isEmpty()) {
+            throw new IllegalStateException("Cannot delete project with associated products.");
+        }
+        projectRepository.delete(project);
     }
 }
