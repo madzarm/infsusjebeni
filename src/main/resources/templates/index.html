@@ -1,0 +1,20 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Home', ~{::pageBody})}">
+
+<div th:fragment="pageBody">
+    <div class="d-flex flex-column justify-content-center align-items-center" style="height: 70vh;">
+        <h2 class="mb-4 text-secondary">Welcome to Project Manager</h2>
+        <div>
+            <a th:href="@{/projects}" class="btn btn-primary btn-lg me-3">
+                <i class="bi bi-folder2-open me-1"></i> Projects
+            </a>
+            <a th:href="@{/products}" class="btn btn-secondary btn-lg">
+                <i class="bi bi-box-seam me-1"></i> Products
+            </a>
+        </div>
+    </div>
+</div>
+
+</html>

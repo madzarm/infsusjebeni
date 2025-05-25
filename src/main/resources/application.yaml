@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    username: user
+    password: password
+    url: jdbc:postgresql://postgres:5432/ManageMate
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true

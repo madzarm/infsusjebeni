@@ -1,0 +1,60 @@
+<!-- product-form.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${product.productId} != null ? 'Edit Product' : 'New Product', ~{::pageBody})}">
+
+<div th:fragment="pageBody">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/products}" th:object="${product}" method="post" class="row g-3 needs-validation" novalidate>
+                <input type="hidden" th:if="*{productId}" th:field="*{productId}"/>
+
+                <div class="col-md-6">
+                    <label for="pname" class="form-label">Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-tag"></i></span>
+                        <input id="pname" type="text" class="form-control" th:field="*{name}" placeholder="Product name" required/>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="price" class="form-label">Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">€</span>
+                        <input id="price" type="number" step="0.01" min="0" class="form-control text-end"
+                               th:field="*{price}" placeholder="0.00" required/>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label for="pdesc" class="form-label">Description</label>
+                    <textarea id="pdesc" class="form-control" th:field="*{description}" rows="3"
+                              placeholder="Short description"></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="project" class="form-label">Project</label>
+                    <select id="project" class="form-select" th:field="*{project.projectId}" required>
+                        <option value="">-- choose project --</option>
+                        <option th:each="p : ${allProjects}"
+                                th:value="${p.projectId}"
+                                th:text="${p.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-save2 me-1"></i> Save
+                    </button>
+                    <a class="btn btn-outline-secondary" th:href="@{/products}">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+</html>

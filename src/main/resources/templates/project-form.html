@@ -1,0 +1,150 @@
+<!-- project-form.html -->
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${project.projectId} != null ? 'Edit Project' : 'New Project', ~{::pageBody})}">
+
+<div th:fragment="pageBody">
+
+    <!-- Project Form Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <!-- General Error Message -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span th:text="${error}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <form th:action="@{/projects}"
+                  th:object="${project}"
+                  method="post"
+                  class="row g-3 needs-validation"
+                  novalidate>
+                <input type="hidden" th:if="*{projectId}" th:field="*{projectId}"/>
+
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-pencil"></i></span>
+                        <input id="name" type="text" class="form-control"
+                               th:field="*{name}" 
+                               th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                               placeholder="Project name" required/>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select id="status" class="form-select" 
+                            th:field="*{status}"
+                            th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'"
+                            required>
+                        <option value="">-- select status --</option>
+                        <option value="PLANNED">PLANNED</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="ON_HOLD">ON HOLD</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="ARCHIVED">ARCHIVED</option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="ata" class="form-label">Avg. Assets</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-calculator"></i></span>
+                        <input id="ata" type="number" class="form-control text-end"
+                               th:field="*{averageTotalAssets}"
+                               th:classappend="${#fields.hasErrors('averageTotalAssets')} ? 'is-invalid'"
+                               min="1" step="1" placeholder="0" required/>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('averageTotalAssets')}" th:errors="*{averageTotalAssets}"></div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label for="mission" class="form-label">Mission</label>
+                    <textarea id="mission" class="form-control"
+                              th:field="*{mission}" rows="2"
+                              placeholder="Mission statement"></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label for="vision" class="form-label">Vision</label>
+                    <textarea id="vision" class="form-control"
+                              th:field="*{vision}" rows="2"
+                              placeholder="Vision statement"></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description" class="form-control"
+                              th:field="*{description}" rows="4"
+                              placeholder="Detailed description"></textarea>
+                </div>
+
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-save2 me-1"></i> Save
+                    </button>
+                    <a class="btn btn-outline-secondary" th:href="@{/projects}">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products List Card (only for saved projects) -->
+    <div class="card shadow-sm" th:if="${project.projectId != null}">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-box-seam me-1"></i> Products</h5>
+            <a class="btn btn-sm btn-success shadow-sm"
+               th:href="@{/products/new(projectId=${project.projectId})}">
+                <i class="bi bi-plus-lg me-1"></i> Add Product
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0" th:object="${project}">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="prod, stat : *{products}">
+                    <td th:text="${stat.index + 1}">1</td>
+                    <td th:text="${prod.name}">Product Name</td>
+                    <td class="text-end"
+                        th:text="${#numbers.formatDecimal(prod.price,1,'COMMA',2,'POINT')}">
+                        0.00
+                    </td>
+                    <td class="text-center">
+                        <a class="btn btn-sm btn-outline-primary me-1"
+                           th:href="@{|/products/${prod.productId}|}">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <form th:action="@{|/products/${prod.productId}/delete|}"
+                              method="post"
+                              class="d-inline">
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-danger"
+                                    onclick="return confirm('Delete this product?')">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="*{products == null or products.isEmpty()}">
+                    <td colspan="4" class="text-center text-muted">No products added</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</html>
