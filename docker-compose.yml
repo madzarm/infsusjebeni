@@ -1,11 +1,13 @@
+version: '3.8'
+
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
+    image: postgres:15
+    container_name: dz3_md_postgres
     environment:
-      POSTGRES_DB: ManageMate
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dz3_md
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
