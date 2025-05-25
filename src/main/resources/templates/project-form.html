@@ -17,19 +17,20 @@
 
             <form
                     th:action="${project.projectId != null}
-      ? @{/projects/{id}(id=${project.projectId})}
-      : @{/projects}"
+        ? @{/projects/{id}(id=${project.projectId})}
+        : @{/projects}"
                     th:object="${project}"
                     method="post"
                     class="row g-3 needs-validation"
                     novalidate>
+
 
                 <div class="col-md-6">
                     <label for="name" class="form-label">Name</label>
                     <div class="input-group">
                         <span class="input-group-text bg-white"><i class="bi bi-pencil"></i></span>
                         <input id="name" type="text" class="form-control"
-                               th:field="*{name}" 
+                               th:field="*{name}"
                                th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
                                placeholder="Project name" required/>
                         <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
@@ -38,7 +39,7 @@
 
                 <div class="col-md-3">
                     <label for="status" class="form-label">Status</label>
-                    <select id="status" class="form-select" 
+                    <select id="status" class="form-select"
                             th:field="*{status}"
                             th:classappend="${#fields.hasErrors('status')} ? 'is-invalid'"
                             required>

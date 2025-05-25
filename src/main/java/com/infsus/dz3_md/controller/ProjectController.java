@@ -58,6 +58,7 @@ public class ProjectController {
             Model model,
             RedirectAttributes redirectAttrs
     ) {
+        System.out.println("Creating project: " + project);
         if (bindingResult.hasErrors()) {
             model.addAttribute("project", project);
             model.addAttribute("error", "Please correct the errors below.");
@@ -99,24 +100,31 @@ public class ProjectController {
     @PostMapping("/{id}")
     public String updateProject(
             @PathVariable UUID id,
-            @Valid @ModelAttribute Project project,
+            @Valid @ModelAttribute("project") Project projectForm,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttrs
     ) {
-        System.out.println("Updating project with ID: " + id);
         if (bindingResult.hasErrors()) {
-            model.addAttribute("project", project);
+            model.addAttribute("project", projectForm);
             model.addAttribute("error", "Please correct the errors below.");
             return "project-form";
         }
         try {
-            project.setProjectId(id);
-            projectService.save(project);
+            System.out.println("Updating project with ID: " + id);
+            Project existing = projectService.findById(id);
+            // update only allowed fields
+            existing.setName(projectForm.getName());
+            existing.setStatus(projectForm.getStatus());
+            existing.setAverageTotalAssets(projectForm.getAverageTotalAssets());
+            existing.setMission(projectForm.getMission());
+            existing.setVision(projectForm.getVision());
+            existing.setDescription(projectForm.getDescription());
+            projectService.save(existing);
             redirectAttrs.addFlashAttribute("msg", "Project updated successfully!");
             return "redirect:/projects";
         } catch (Exception ex) {
-            model.addAttribute("project", project);
+            model.addAttribute("project", projectForm);
             model.addAttribute("error", ex.getMessage());
             return "project-form";
         }

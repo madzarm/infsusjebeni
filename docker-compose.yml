@@ -12,17 +12,24 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+
   app:
     build: .
     container_name: manage_mate_app
     ports:
       - "8080:8080"
+    volumes:
+      - ./src:/app/src
+      - ./pom.xml:/app/pom.xml
+    working_dir: /app  # Ensure app runs from mounted code
     depends_on:
       - postgres
     networks:
       - app-network
+
 networks:
   app-network:
     driver: bridge
+
 volumes:
   postgres_data:
