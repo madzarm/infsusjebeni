@@ -46,7 +46,6 @@ class ProjectControllerTest {
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .setViewResolvers(viewResolver)
                 .setCustomArgumentResolvers(pageableResolver)
-                // see next section for validator…
                 .build();
     }
 
@@ -72,7 +71,6 @@ class ProjectControllerTest {
 
     @Test
     void createProject_validationErrors() throws Exception {
-        // simulate binding errors by posting empty fields
         mvc.perform(post("/projects")
                         .param("name", "Test")
                         .param("status", "ACTIVE")
@@ -88,7 +86,6 @@ class ProjectControllerTest {
 
     @Test
     void createProject_success() throws Exception {
-        // no validation error, stub save()
         mvc.perform(post("/projects")
                         .param("name", "Test")
                         .param("status", "ACTIVE")
@@ -127,7 +124,7 @@ class ProjectControllerTest {
     void updateProject_validationErrors() throws Exception {
         UUID id = UUID.randomUUID();
         mvc.perform(post("/projects/{id}", id)
-                        .param("name", "") // invalid
+                        .param("name", "")
                 )
                 .andExpect(status().isOk())
                 .andExpect(view().name("project-form"))

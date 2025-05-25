@@ -54,7 +54,6 @@ class ProductIntegrationTest {
 
     @Test
     void fullCrudFlow() throws Exception {
-        // CREATE
         mvc.perform(post("/products")
                         .param("name", "NewProd")
                         .param("price", "5.00")
@@ -65,14 +64,12 @@ class ProductIntegrationTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/projects/*"));
 
-        // LIST
         mvc.perform(get("/products"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("product-list"))
                 .andExpect(model().attribute("page",
                         hasProperty("totalElements", equalTo(2L))));
 
-        // READ (edit form)
         mvc.perform(get("/products/{id}", existing.getProductId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("product-form"))
@@ -81,7 +78,6 @@ class ProductIntegrationTest {
                 .andExpect(model().attribute("allProjects",
                         hasSize(1)));
 
-        // UPDATE
         mvc.perform(post("/products")
                         .param("productId", existing.getProductId().toString())
                         .param("name", "ProdXUpdated")
@@ -93,20 +89,17 @@ class ProductIntegrationTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/" + proj.getProjectId()));
 
-        // VERIFY UPDATED
         mvc.perform(get("/products/{id}", existing.getProductId()))
                 .andExpect(model().attribute("product",
                         hasProperty("name", equalTo("ProdXUpdated"))))
                 .andExpect(model().attribute("product",
                         hasProperty("price", equalTo(new BigDecimal("19.99")))));
 
-        // DELETE
         System.out.println("We have: " + productRepository.findAll().size());
         mvc.perform(post("/products/{id}/delete", existing.getProductId()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/projects/" + proj.getProjectId()));
 
-        // VERIFY DELETED
         mvc.perform(get("/products"))
                 .andExpect(model().attribute("page",
                         hasProperty("totalElements", equalTo(1L))));

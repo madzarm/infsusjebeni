@@ -31,8 +31,8 @@ class ProjectRepositoryTest {
     private Project persistProject(String name) {
         Project p = new Project();
         p.setName(name);
-        p.setStatus(Status.PLANNED);            // required
-        p.setAverageTotalAssets(1);             // must be > 0
+        p.setStatus(Status.PLANNED);
+        p.setAverageTotalAssets(1);
         em.persist(p);
         return p;
     }
@@ -41,7 +41,7 @@ class ProjectRepositoryTest {
     void setUp() {
         p1 = persistProject("First Project");
         p2 = persistProject("Second Project");
-        em.flush();  // make sure everything is written before queries
+        em.flush();
     }
 
     @Test

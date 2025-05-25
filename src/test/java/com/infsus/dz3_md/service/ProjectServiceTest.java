@@ -46,7 +46,6 @@ class ProjectServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         String q = "foo";
         Page<Project> page = new PageImpl<>(List.of(new Project()));
-        // We cannot verify spec internals; just stub
         when(repo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
 
         Page<Project> result = service.search(q, pageable);
@@ -114,7 +113,7 @@ class ProjectServiceTest {
         UUID id = UUID.randomUUID();
         Project p = new Project();
         Product product = new Product();
-        p.setProducts(List.of(product)); // dummy product
+        p.setProducts(List.of(product));
         when(repo.findById(id)).thenReturn(Optional.of(p));
 
         assertThatThrownBy(() -> service.delete(id))

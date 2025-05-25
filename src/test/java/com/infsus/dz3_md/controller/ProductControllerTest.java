@@ -43,9 +43,8 @@ class ProductControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
 
-        // ALWAYS stub the dropdown population
         when(projectService.search(isNull(), eq(Pageable.unpaged())))
-                .thenReturn(new PageImpl<>(List.of()));  // or Page.empty()
+                .thenReturn(new PageImpl<>(List.of()));
 
         InternalResourceViewResolver vr = new InternalResourceViewResolver();
         vr.setPrefix("/WEB-INF/jsp/");
@@ -65,11 +64,9 @@ class ProductControllerTest {
 
     @Test
     void listProducts_noFilters() throws Exception {
-        // stub dropdown population
         List<Project> projects = List.of(new Project());
         when(projectService.search(isNull(), eq(Pageable.unpaged())))
                 .thenReturn(new PageImpl<>(projects));
-        // stub page
         Page<Product> page = new PageImpl<>(List.of());
         when(productService.search(null, null, PageRequest.of(0,10)))
                 .thenReturn(page);
@@ -164,7 +161,6 @@ class ProductControllerTest {
 
     @Test
     void saveProduct_validationErrors() throws Exception {
-        // no parameters -> BindingResult.hasErrors()==true
         mvc.perform(post("/products"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("product-form"));
@@ -176,11 +172,9 @@ class ProductControllerTest {
         Project proj = new Project();
         proj.setProjectId(pid);
 
-        // stub dropdown
         when(projectService.search(isNull(), eq(Pageable.unpaged())))
                 .thenReturn(new PageImpl<>(List.of(proj)));
 
-        // returned saved product
         Product saved = new Product();
         saved.setProject(proj);
         when(productService.save(ArgumentMatchers.any(Product.class))).thenReturn(saved);

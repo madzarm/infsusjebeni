@@ -33,7 +33,6 @@ class ProductServiceTest {
         pageable = PageRequest.of(0, 10);
     }
 
-    // --- search() ---
 
     @Test
     void search_noProject_noQuery_callsFindAll() {
@@ -84,7 +83,6 @@ class ProductServiceTest {
         verify(repo).findByProject_ProjectIdAndNameContainingIgnoreCase(pid, "foo", pageable);
     }
 
-    // --- findById() ---
 
     @Test
     void findById_found() {
@@ -107,7 +105,6 @@ class ProductServiceTest {
                 .hasMessageContaining(id.toString());
     }
 
-    // --- save() ---
 
     @Test
     void save_noProject_throwsIllegalArgument() {
@@ -175,7 +172,6 @@ class ProductServiceTest {
         verify(projectService).save(proj);
     }
 
-    // --- delete() ---
 
     @Test
     void delete_notExists_throwsEntityNotFound() {

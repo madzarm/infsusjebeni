@@ -37,7 +37,6 @@ class ProductRepositoryTest {
         Project projB = persistProject("Proj B");
         prodOther    = persistProduct(projB, "Beta");
 
-        // ensure all are flushed to the in-memory DB
         em.flush();
         em.clear();
     }
@@ -72,22 +71,18 @@ class ProductRepositoryTest {
 
     @Test
     void existsByNameAndProject_ProjectId_andNot() {
-        // the product "Alpha" in projA exists
         assertThat(repo.existsByNameAndProject_ProjectId("Alpha", projA.getProjectId()))
                 .isTrue();
 
-        // but if we exclude its own ID, it no longer counts as "another"
         assertThat(repo.existsByNameAndProject_ProjectIdAndProductIdNot(
                 "Alpha", projA.getProjectId(), prod1.getProductId()))
                 .isFalse();
 
-        // yet with some random UUID, it does still find the existing one
         assertThat(repo.existsByNameAndProject_ProjectIdAndProductIdNot(
                 "Alpha", projA.getProjectId(), UUID.randomUUID()))
                 .isTrue();
     }
 
-    //––– helpers to keep tests clean –––//
 
     /**
      * Persist a new Project with all required fields set
@@ -95,8 +90,8 @@ class ProductRepositoryTest {
     private Project persistProject(String name) {
         Project p = new Project();
         p.setName(name);
-        p.setStatus(Status.PLANNED);            // required
-        p.setAverageTotalAssets(5);             // required
+        p.setStatus(Status.PLANNED);
+        p.setAverageTotalAssets(5);
         em.persist(p);
         return p;
     }

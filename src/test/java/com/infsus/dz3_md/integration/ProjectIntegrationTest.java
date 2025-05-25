@@ -44,7 +44,6 @@ class ProjectIntegrationTest {
 
     @Test
     void fullCrudFlow() throws Exception {
-        // CREATE
         mvc.perform(post("/projects")
                         .param("name", "XProj")
                         .param("status", "ACTIVE")
@@ -63,20 +62,17 @@ class ProjectIntegrationTest {
         UUID id = p.getProjectId();
         assertThat(p.getName()).isEqualTo("XProj");
 
-        // READ (list)
         mvc.perform(get("/projects"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("project-list"))
                 .andExpect(model().attributeExists("page"));
 
-        // READ (edit form)
         mvc.perform(get("/projects/{id}", p.getProjectId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("project-form"))
                 .andExpect(model().attribute("project",
                         hasProperty("projectId", equalTo(p.getProjectId()))));
 
-        // UPDATE
         mvc.perform(post("/projects/{id}", id)
                         .param("name", "XProjUpdated")
                         .param("status", "ACTIVE")
@@ -92,7 +88,6 @@ class ProjectIntegrationTest {
         assertThat(projectRepository.findById(id).get().getName())
                 .isEqualTo("XProjUpdated");
 
-        // DELETE
         mvc.perform(post("/projects/{id}/delete", id))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("msg", "Project deleted successfully!"))
