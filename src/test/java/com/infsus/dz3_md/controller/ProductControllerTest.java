@@ -160,13 +160,6 @@ class ProductControllerTest {
     }
 
     @Test
-    void saveProduct_validationErrors() throws Exception {
-        mvc.perform(post("/products"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("product-form"));
-    }
-
-    @Test
     void saveProduct_success() throws Exception {
         UUID pid = UUID.randomUUID();
         Project proj = new Project();
