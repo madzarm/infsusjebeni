@@ -37,6 +37,7 @@ class ProductIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        projectRepo.deleteAll();
         productRepo.deleteAll();
         proj = new Project();
         proj.setName("P1");
