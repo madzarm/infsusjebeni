@@ -10,6 +10,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.*;
 
 import jakarta.persistence.EntityManager;
+import org.springframework.test.annotation.DirtiesContext;
+
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,6 +106,7 @@ class ProductRepositoryTest {
         Product prod = new Product();
         prod.setName(productName);
         prod.setProject(project);
+        prod.setPrice(BigDecimal.valueOf(100.0));
         em.persist(prod);
         return prod;
     }
