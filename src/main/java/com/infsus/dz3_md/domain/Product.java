@@ -1,8 +1,7 @@
 package com.infsus.dz3_md.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,7 +28,8 @@ public class Product {
     @Column(length = 2000)
     private String description;
 
-    @PositiveOrZero(message = "Price must be >= 0")
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be greater than 0")
     private BigDecimal price;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

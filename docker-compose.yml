@@ -1,37 +1,28 @@
-version: '3.8'
-
 services:
   postgres:
-    image: postgres:15
-    container_name: dz3_md_postgres
+    image: postgres:latest
+    container_name: postgres
     environment:
-      POSTGRES_DB: dz3_md
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ManageMate2
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data2:/var/lib/postgresql/data
     networks:
       - app-network
-
   app:
     build: .
     container_name: manage_mate_app
     ports:
       - "8080:8080"
-    volumes:
-      - ./src:/app/src
-      - ./pom.xml:/app/pom.xml
-    working_dir: /app
     depends_on:
       - postgres
     networks:
       - app-network
-
 networks:
   app-network:
     driver: bridge
-
 volumes:
-  postgres_data:
+  postgres_data2:
