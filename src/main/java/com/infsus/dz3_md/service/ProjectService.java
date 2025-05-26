@@ -1,6 +1,8 @@
 package com.infsus.dz3_md.service;
 
+import com.infsus.dz3_md.domain.Product;
 import com.infsus.dz3_md.domain.Project;
+import com.infsus.dz3_md.repository.ProductRepository;
 import com.infsus.dz3_md.repository.ProjectRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -16,6 +19,7 @@ import java.util.UUID;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ProductRepository productRepository;
 
     @Transactional(readOnly = true)
     public Page<Project> search(String q, Pageable pageable) {
@@ -38,11 +42,11 @@ public class ProjectService {
 
     @Transactional
     public void delete(UUID id) {
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + id));
-        if (project.getProducts() != null && !project.getProducts().isEmpty()) {
-            throw new IllegalStateException("Cannot delete project with associated products.");
-        }
+        var products = project.getProducts();
+        productRepository.deleteAll(products);
         projectRepository.delete(project);
     }
 }

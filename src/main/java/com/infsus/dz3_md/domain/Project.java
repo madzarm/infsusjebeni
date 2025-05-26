@@ -55,6 +55,10 @@ public class Project {
     @Valid
     private List<Product> products = new ArrayList<>();
 
+    @OneToMany(mappedBy = "project",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
     public List<Product> getProducts() {
         return products;
     }
