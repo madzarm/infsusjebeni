@@ -35,7 +35,7 @@ services:
       ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR: 1
       ZEEBE_BROKER_CLUSTER_CLUSTERSIZE: 1
       ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME: io.camunda.zeebe.exporter.ElasticsearchExporter
-      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL: http://localhost:9201
+      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL: http://localhost:9200
     ports: ["26500:26500"]   # gRPC gateway
     depends_on: [elasticsearch]
     networks: [app-network]
@@ -44,7 +44,7 @@ services:
     image: camunda/operate
     environment:
       CAMUNDA_OPERATE_ZEEBE_GATEWAY_ADDRESS: zeebe:26500
-      CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://localhost:9201
+      CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://localhost:9200
       CAMUNDA_OPERATE_AUTH_ENABLED: "false"
     ports: ["8081:8080"]
     depends_on: [zeebe]
@@ -54,7 +54,7 @@ services:
     image: camunda/tasklist
     environment:
       CAMUNDA_TASKLIST_ZEEBE_GATEWAY_ADDRESS: zeebe:26500
-      CAMUNDA_TASKLIST_ELASTICSEARCH_URL: http://localhost:9201
+      CAMUNDA_TASKLIST_ELASTICSEARCH_URL: http://localhost:9200
       CAMUNDA_TASKLIST_AUTH_ENABLED: "false"
     ports: ["8082:8080"]
     depends_on: [zeebe]
