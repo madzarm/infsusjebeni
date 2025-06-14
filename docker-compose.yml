@@ -3,26 +3,67 @@ services:
     image: postgres:latest
     container_name: postgres
     environment:
-      POSTGRES_DB: ManageMate2
+      POSTGRES_DB: ManageMate3
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data2:/var/lib/postgresql/data
+      - postgres_data3:/var/lib/postgresql/data
     networks:
       - app-network
-  app:
-    build: .
-    container_name: manage_mate_app
+
+
+  elasticsearch:
+    image: arm64v8/elasticsearch:8.17.6
+    platform: linux/arm64
     ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    networks:
-      - app-network
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g -XX:UseSVE=0'
+      - 'CLI_JAVA_OPTS=-XX:UseSVE=0'
+    networks: [app-network]
+
+  zeebe:
+    image: camunda/zeebe
+    environment:
+      ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT: 1
+      ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR: 1
+      ZEEBE_BROKER_CLUSTER_CLUSTERSIZE: 1
+      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME: io.camunda.zeebe.exporter.ElasticsearchExporter
+      ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL: http://localhost:9201
+    ports: ["26500:26500"]   # gRPC gateway
+    depends_on: [elasticsearch]
+    networks: [app-network]
+
+  operate:
+    image: camunda/operate
+    environment:
+      CAMUNDA_OPERATE_ZEEBE_GATEWAY_ADDRESS: zeebe:26500
+      CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://localhost:9201
+      CAMUNDA_OPERATE_AUTH_ENABLED: "false"
+    ports: ["8081:8080"]
+    depends_on: [zeebe]
+    networks: [app-network]
+
+  tasklist:
+    image: camunda/tasklist
+    environment:
+      CAMUNDA_TASKLIST_ZEEBE_GATEWAY_ADDRESS: zeebe:26500
+      CAMUNDA_TASKLIST_ELASTICSEARCH_URL: http://localhost:9201
+      CAMUNDA_TASKLIST_AUTH_ENABLED: "false"
+    ports: ["8082:8080"]
+    depends_on: [zeebe]
+    networks: [app-network]
+
 networks:
   app-network:
     driver: bridge
+
 volumes:
-  postgres_data2:
+  postgres_data3:
+  esdata:

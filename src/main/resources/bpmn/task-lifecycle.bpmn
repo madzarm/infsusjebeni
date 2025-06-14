@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:zeebe="http://camunda.org/schema/zeebe/1.0"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    id="Definitions_1"
+    targetNamespace="http://example.com/bpmn">
+
+  <bpmn:process id="task_lifecycle" name="Task Lifecycle" isExecutable="true">
+
+    <!-- ▶︎  Start -->
+    <bpmn:startEvent id="Start">
+      <bpmn:outgoing>Flow_Start_Submit</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- ▶︎  Submit / Review -->
+    <bpmn:userTask id="Submit" name="Submit Task">
+      <bpmn:incoming>Flow_Start_Submit</bpmn:incoming>
+      <bpmn:outgoing>Flow_Submit_Review</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Review" name="Review Task">
+      <bpmn:incoming>Flow_Submit_Review</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_Decision</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- ▶︎  Gateway -->
+    <bpmn:exclusiveGateway id="Decision" name="Approved?">
+      <bpmn:incoming>Flow_Review_Decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approved</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- ▶︎  Message wait -->
+    <bpmn:intermediateCatchEvent id="WaitMsg" name="Wait for External Confirmation">
+      <bpmn:incoming>Flow_Approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Wait_MarkReady</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="ExternalConfirm"/>
+    </bpmn:intermediateCatchEvent>
+
+    <!-- ▶︎  Service: mark ready -->
+    <bpmn:serviceTask id="MarkReady" name="Mark as Ready">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="mark-ready"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Wait_MarkReady</bpmn:incoming>
+      <bpmn:outgoing>Flow_MarkReady_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- ▶︎  End -->
+    <bpmn:endEvent id="End">
+      <bpmn:incoming>Flow_MarkReady_End</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- ▶︎  Rejected: edit -->
+    <bpmn:userTask id="Edit" name="Edit Task">
+      <bpmn:incoming>Flow_Rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_Edit_Submit</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- ▶︎  Flows -->
+    <bpmn:sequenceFlow id="Flow_Start_Submit"   sourceRef="Start"   targetRef="Submit"/>
+    <bpmn:sequenceFlow id="Flow_Submit_Review"  sourceRef="Submit"  targetRef="Review"/>
+    <bpmn:sequenceFlow id="Flow_Review_Decision" sourceRef="Review" targetRef="Decision"/>
+
+    <bpmn:sequenceFlow id="Flow_Approved" sourceRef="Decision" targetRef="WaitMsg">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+        = approved = true
+      </bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Rejected" sourceRef="Decision" targetRef="Edit">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+        = approved = false
+      </bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Edit_Submit"   sourceRef="Edit"      targetRef="Submit"/>
+    <bpmn:sequenceFlow id="Flow_Wait_MarkReady" sourceRef="WaitMsg"   targetRef="MarkReady"/>
+    <bpmn:sequenceFlow id="Flow_MarkReady_End"  sourceRef="MarkReady" targetRef="End"/>
+
+  </bpmn:process>
+
+  <!-- ▶︎  Message with REQUIRED subscription -->
+  <bpmn:message id="ExternalConfirm" name="ExternalConfirmation">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="= taskId"/>
+    </bpmn:extensionElements>
+  </bpmn:message>
+
+</bpmn:definitions>

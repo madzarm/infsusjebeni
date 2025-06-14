@@ -2,7 +2,7 @@ spring:
   datasource:
     username: user
     password: password
-    url: jdbc:postgresql://postgres:5432/ManageMate2
+    url: jdbc:postgresql://localhost:5432/ManageMate3
   jpa:
     hibernate:
       ddl-auto: update
@@ -10,3 +10,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+camunda:
+  client:
+    zeebe:
+      base-url: http://localhost:26500
