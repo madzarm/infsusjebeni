@@ -1,1 +1,0 @@
-pokrenuti sa docker-compose up
